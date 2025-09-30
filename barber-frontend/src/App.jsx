@@ -8,7 +8,16 @@ import BarberDashboard from './components/Dashboard/BarberDashboard';
 import ClientDashboard from './components/Dashboard/ClientDashboard';
 
 function Routes() {
-  const { user } = useContext(AuthContext);
+  const { user, loading } = useContext(AuthContext);
+  
+  if (loading) {
+    return (
+      <div className="loading">
+        <h2>Carregando...</h2>
+      </div>
+    );
+  }
+  
   if (!user) {
     return (
       <div className="auth-container">
@@ -17,6 +26,7 @@ function Routes() {
       </div>
     );
   }
+  
   if (user.role === 'admin') return <AdminDashboard />;
   if (user.role === 'barber') return <BarberDashboard />;
   return <ClientDashboard />;
