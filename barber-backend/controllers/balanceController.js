@@ -1,4 +1,4 @@
-import Appointment from '../models/Appointment.js';
+import { supabase } from '../../supabaseClient.js';
 
 export async function getBalance(req, res) {
   const { period = 'mensal' } = req.query;
@@ -11,7 +11,17 @@ export async function getBalance(req, res) {
     start.setDate(now.getDate() - day);
   } else if (period === 'anual') start = new Date(now.getFullYear(), 0, 1);
   else start = new Date(0);
-  const ags = await Appointment.find({ date: { $gte: start, $lte: now }, status: 'finalizado' });
-  const total = ags.reduce((sum, a) => sum + (a.value || 0), 0);
-  res.json({ total, count: ags.length, period });
+  try {
+    const { data, error } = await supabase
+      .from('appointments')
+      .select('*')
+      .gte('date', start.toISOString())
+      .lte('date', now.toISOString())
+      .eq('status', 'finalizado');
+    if (error) throw error;
+    const total = (data || []).reduce((sum, a) => sum + (a.value || 0), 0);
+    res.json({ total, count: (data || []).length, period });
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao calcular balanço', error: err.message });
+  }
 }

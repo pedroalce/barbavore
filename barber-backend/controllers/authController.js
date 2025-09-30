@@ -1,22 +1,40 @@
-import User from '../models/User.js';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import { supabase } from '../../supabaseClient.js';
 
 export async function login(req, res) {
-  const { email, password } = req.body;
-  const user = await User.findOne({ email });
-  if (!user) return res.status(401).json({ message: 'Usuário não encontrado' });
-  const valid = await bcrypt.compare(password, user.password);
-  if (!valid) return res.status(401).json({ message: 'Senha incorreta' });
-  const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1d' });
-  res.json({ token, user: { id: user._id, name: user.name, email: user.email, role: user.role } });
+  try {
+    const { email, password } = req.body;
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return res.status(401).json({ message: error.message });
+    const session = data.session;
+    const user = data.user;
+    res.json({
+      token: session?.access_token,
+      user: {
+        id: user.id,
+        name: user.user_metadata?.name,
+        email: user.email,
+        role: user.user_metadata?.role || user.app_metadata?.role || 'client'
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao autenticar', error: err.message });
+  }
 }
 
 export async function register(req, res) {
-  const { name, birthDate, email, whatsapp, password, gender, role, photoUrl } = req.body;
-  const exists = await User.findOne({ email });
-  if (exists) return res.status(400).json({ message: 'E-mail já cadastrado' });
-  const hash = await bcrypt.hash(password, 10);
-  const user = await User.create({ name, birthDate, email, whatsapp, password: hash, gender, role, photoUrl });
-  res.status(201).json({ id: user._id, name: user.name, email: user.email, role: user.role });
+  try {
+    const { name, email, password, role = 'client', birthDate, whatsapp, gender, photoUrl } = req.body;
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name, role, birthDate, whatsapp, gender, photoUrl }
+      }
+    });
+    if (error) return res.status(400).json({ message: error.message });
+    const user = data.user;
+    res.status(201).json({ id: user.id, name, email, role });
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao registrar', error: err.message });
+  }
 }

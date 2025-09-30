@@ -1,51 +1,77 @@
 
-import Appointment from '../models/Appointment.js';
-import User from '../models/User.js';
+import { supabase } from '../../supabaseClient.js';
 
 // Histórico de agendamentos para o usuário autenticado
 export async function getAppointmentsHistory(req, res) {
   try {
     const { role, id } = req.user;
-    let query = {};
-    if (role === 'client') query.client = id;
-    if (role === 'barber') query.barber = id;
-    // Admin vê todos
-    const appointments = await Appointment.find(query)
-      .populate('client', 'name email')
-      .populate('barber', 'name email')
-      .sort({ date: -1 });
-    res.json(appointments);
+    let builder = supabase.from('appointments').select('*').order('date', { ascending: false });
+    if (role === 'client') builder = builder.eq('client', id);
+    if (role === 'barber') builder = builder.eq('barber', id);
+    const { data, error } = await builder;
+    if (error) throw error;
+    res.json(data || []);
   } catch (err) {
     res.status(500).json({ message: 'Erro ao buscar histórico', error: err.message });
   }
 }
 
 export async function getAppointments(req, res) {
-  const { role, id } = req.user;
-  let query = {};
-  if (role === 'client') query.client = id;
-  if (role === 'barber') query.barber = id;
-  if (role === 'admin') query = {};
-  const appointments = await Appointment.find(query).populate('client barber', 'name email');
-  res.json(appointments);
+  try {
+    const { role, id } = req.user;
+    let builder = supabase.from('appointments').select('*');
+    if (role === 'client') builder = builder.eq('client', id);
+    if (role === 'barber') builder = builder.eq('barber', id);
+    const { data, error } = await builder;
+    if (error) throw error;
+    res.json(data || []);
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao listar agendamentos', error: err.message });
+  }
 }
 
 export async function createAppointment(req, res) {
-  const { client, barber, date, startTime, endTime, services, value } = req.body;
-  const appointment = await Appointment.create({ client, barber, date, startTime, endTime, services, value });
-  res.status(201).json(appointment);
+  try {
+    const payload = req.body;
+    const { data, error } = await supabase
+      .from('appointments')
+      .insert([payload])
+      .select()
+      .single();
+    if (error) throw error;
+    res.status(201).json(data);
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao criar agendamento', error: err.message });
+  }
 }
 
 export async function updateAppointment(req, res) {
-  const { id } = req.params;
-  const appointment = await Appointment.findByIdAndUpdate(id, req.body, { new: true });
-  if (!appointment) return res.status(404).json({ message: 'Agendamento não encontrado' });
-  res.json(appointment);
+  try {
+    const { id } = req.params;
+    const { data, error } = await supabase
+      .from('appointments')
+      .update(req.body)
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) throw error;
+    if (!data) return res.status(404).json({ message: 'Agendamento não encontrado' });
+    res.json(data);
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao atualizar agendamento', error: err.message });
+  }
 }
 
 export async function deleteAppointment(req, res) {
-  const { id } = req.params;
-  const appointment = await Appointment.findByIdAndDelete(id);
-  if (!appointment) return res.status(404).json({ message: 'Agendamento não encontrado' });
-  res.json({ message: 'Agendamento removido' });
+  try {
+    const { id } = req.params;
+    const { error } = await supabase
+      .from('appointments')
+      .delete()
+      .eq('id', id);
+    if (error) throw error;
+    res.json({ message: 'Agendamento removido' });
+  } catch (err) {
+    res.status(500).json({ message: 'Erro ao deletar agendamento', error: err.message });
+  }
 }
