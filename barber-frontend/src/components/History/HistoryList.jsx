@@ -1,5 +1,3 @@
-
-import React, { useEffect, useState, useContext } from 'react';
 import { getAppointmentsHistory } from '../../services/api';
 import { AuthContext } from '../../context/AuthContext';
 

@@ -1,4 +1,3 @@
-import React, { useState, useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 
 export default function Register() {
@@ -48,45 +47,45 @@ export default function Register() {
   return (
     <form onSubmit={handleSubmit} className="auth-form">
       <h2>Cadastro</h2>
-      <input 
-        type="text" 
+      <input
+        type="text"
         name="name"
-        placeholder="Nome completo" 
-        value={formData.name} 
-        onChange={handleChange} 
-        required 
+        placeholder="Nome completo"
+        value={formData.name}
+        onChange={handleChange}
+        required
         disabled={loading}
       />
-      <input 
-        type="email" 
+      <input
+        type="email"
         name="email"
-        placeholder="E-mail" 
-        value={formData.email} 
-        onChange={handleChange} 
-        required 
+        placeholder="E-mail"
+        value={formData.email}
+        onChange={handleChange}
+        required
         disabled={loading}
       />
-      <input 
-        type="password" 
+      <input
+        type="password"
         name="password"
-        placeholder="Senha" 
-        value={formData.password} 
-        onChange={handleChange} 
-        required 
+        placeholder="Senha"
+        value={formData.password}
+        onChange={handleChange}
+        required
         disabled={loading}
       />
-      <input 
-        type="password" 
+      <input
+        type="password"
         name="confirmPassword"
-        placeholder="Confirmar senha" 
-        value={formData.confirmPassword} 
-        onChange={handleChange} 
-        required 
+        placeholder="Confirmar senha"
+        value={formData.confirmPassword}
+        onChange={handleChange}
+        required
         disabled={loading}
       />
-      <select 
+      <select
         name="role"
-        value={formData.role} 
+        value={formData.role}
         onChange={handleChange}
         disabled={loading}
       >
@@ -94,25 +93,25 @@ export default function Register() {
         <option value="barber">Barbeiro</option>
         <option value="admin">Administrador</option>
       </select>
-      <input 
-        type="date" 
+      <input
+        type="date"
         name="birthDate"
-        placeholder="Data de nascimento" 
-        value={formData.birthDate} 
-        onChange={handleChange} 
+        placeholder="Data de nascimento"
+        value={formData.birthDate}
+        onChange={handleChange}
         disabled={loading}
       />
-      <input 
-        type="tel" 
+      <input
+        type="tel"
         name="whatsapp"
-        placeholder="WhatsApp" 
-        value={formData.whatsapp} 
-        onChange={handleChange} 
+        placeholder="WhatsApp"
+        value={formData.whatsapp}
+        onChange={handleChange}
         disabled={loading}
       />
-      <select 
+      <select
         name="gender"
-        value={formData.gender} 
+        value={formData.gender}
         onChange={handleChange}
         disabled={loading}
       >

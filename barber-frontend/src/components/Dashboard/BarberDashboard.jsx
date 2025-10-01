@@ -1,5 +1,3 @@
-import React, { useState } from 'react';
-
 import AgendaView from '../Agenda/AgendaView';
 import HistoryList from '../History/HistoryList';
 // import ValidateAppointments from '../Dashboard/ValidateAppointments';

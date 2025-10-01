@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function ProfileForm() {
   // Em breve: renderizar formulário de perfil do cliente
   return (
