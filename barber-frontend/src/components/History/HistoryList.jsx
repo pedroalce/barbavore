@@ -1,47 +1,36 @@
-import { getAppointmentsHistory } from '../../services/api';
-import { AuthContext } from '../../context/AuthContext';
+import { useContext, useState, useEffect } from "react";
+import { AuthContext } from "../../context/AuthContext";
 
-export default function HistoryList() {
-  const { token, user } = useContext(AuthContext);
-  const [history, setHistory] = useState([]);
+const HistoryList = () => {
+  const { user } = useContext(AuthContext);
+  const [historico, setHistorico] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
-    async function fetchHistory() {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await getAppointmentsHistory(token);
-        setHistory(data);
-      } catch (err) {
-        setError('Erro ao buscar histórico');
-      } finally {
-        setLoading(false);
-      }
-    }
-    if (token) fetchHistory();
-  }, [token]);
+    // Simulação de fetch do histórico
+    setTimeout(() => {
+      setHistorico([
+        { id: 1, servico: "Corte de cabelo", data: "2025-09-01" },
+        { id: 2, servico: "Barba", data: "2025-09-15" },
+      ]);
+      setLoading(false);
+    }, 1000);
+  }, []);
 
-  if (loading) return <div>Carregando histórico...</div>;
-  if (error) return <div>{error}</div>;
-
-  if (!history.length) return <div>Nenhum agendamento encontrado.</div>;
+  if (loading) return <p>Carregando histórico...</p>;
 
   return (
     <div>
-      <h3>Histórico de Cortes</h3>
+      <h2>Histórico de {user?.nome || user?.email}</h2>
       <ul>
-        {history.map((item) => (
-          <li key={item._id}>
-            <strong>Data:</strong> {new Date(item.date).toLocaleString()}<br />
-            <strong>Serviço:</strong> {item.service?.name || '-'}<br />
-            <strong>Cliente:</strong> {item.client?.name || '-'}<br />
-            <strong>Barbeiro:</strong> {item.barber?.name || '-'}<br />
-            <strong>Status:</strong> {item.status || '-'}
+        {historico.map((item) => (
+          <li key={item.id}>
+            {item.servico} - {item.data}
           </li>
         ))}
       </ul>
     </div>
   );
-}
+};
+
+export default HistoryList;

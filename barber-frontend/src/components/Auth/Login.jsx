@@ -1,47 +1,34 @@
-import { AuthContext } from '../../context/AuthContext';
+import { useState, useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
 
-export default function Login() {
+const Login = () => {
   const { login } = useContext(AuthContext);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-    
-    const success = await login(email, password);
-    if (!success) {
-      setError('Usuário ou senha inválidos');
-    }
-    setLoading(false);
+    login(email, senha);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="auth-form">
+    <form onSubmit={handleSubmit}>
       <h2>Login</h2>
-      <input 
-        type="email" 
-        placeholder="E-mail" 
-        value={email} 
-        onChange={e => setEmail(e.target.value)} 
-        required 
-        disabled={loading}
+      <input
+        type="email"
+        placeholder="E-mail"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
       />
-      <input 
-        type="password" 
-        placeholder="Senha" 
-        value={password} 
-        onChange={e => setPassword(e.target.value)} 
-        required 
-        disabled={loading}
+      <input
+        type="password"
+        placeholder="Senha"
+        value={senha}
+        onChange={(e) => setSenha(e.target.value)}
       />
-      <button type="submit" disabled={loading}>
-        {loading ? 'Entrando...' : 'Entrar'}
-      </button>
-      {error && <div className="error">{error}</div>}
+      <button type="submit">Entrar</button>
     </form>
   );
-}
+};
+
+export default Login;
