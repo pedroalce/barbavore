@@ -1,11 +1,19 @@
-import { SERVICES } from '../models/Service.js';
+// barber-backend/controllers/servicesController.js
+import supabase from '../supabaseClient.js'
 
-export function getServices(req, res) {
-  res.json(SERVICES);
+export async function getServices(req, res) {
+  const { data, error } = await supabase.from('services').select('*')
+
+  if (error) return res.status(400).json({ error: error.message })
+  res.json(data)
 }
 
-export function updateService(req, res) {
-  // Para simplificação, apenas retorna os novos valores enviados
-  // Em produção, salve em banco/config
-  res.json({ updated: req.body });
+export async function createService(req, res) {
+  const { name, duration_minutes, price } = req.body
+  const { data, error } = await supabase
+    .from('services')
+    .insert([{ name, duration_minutes, price }])
+
+  if (error) return res.status(400).json({ error: error.message })
+  res.status(201).json(data)
 }

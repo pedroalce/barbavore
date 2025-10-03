@@ -1,23 +1,24 @@
-import { useState } from "react";
-import AgendaView from "../Agenda/AgendaView";
-import HistoryList from "../History/HistoryList";
-import ProfileForm from "../Profile/ProfileForm";
+import { useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
+import AppointmentForm from "../AppointmentForm";
+import MyAppointments from "../myAppointments";
 
-const ClientDashboard = () => {
-  const [abaAtiva, setAbaAtiva] = useState("agenda");
+
+export default function ClientDashboard() {
+  const { user } = useContext(AuthContext);
 
   return (
-    <div>
-      <h1>Dashboard Cliente</h1>
-      <button onClick={() => setAbaAtiva("agenda")}>Agenda</button>
-      <button onClick={() => setAbaAtiva("historico")}>Histórico</button>
-      <button onClick={() => setAbaAtiva("perfil")}>Perfil</button>
+    <div className="client-dashboard">
+      <h2>Bem-vindo, {user?.email}</h2>
 
-      {abaAtiva === "agenda" && <AgendaView />}
-      {abaAtiva === "historico" && <HistoryList />}
-      {abaAtiva === "perfil" && <ProfileForm />}
+      <section>
+        <h3>Agendar novo horário</h3>
+        <AppointmentForm />
+      </section>
+
+      <section>
+        <myAppointments />
+      </section>
     </div>
   );
-};
-
-export default ClientDashboard;
+}

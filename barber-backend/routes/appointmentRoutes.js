@@ -1,16 +1,18 @@
-import express from 'express';
-import { getAppointments, createAppointment, updateAppointment, deleteAppointment } from '../controllers/appointmentController.js';
-import { auth, isAdmin, isOwnerOrAdmin } from '../middleware/auth.js';
-const router = express.Router();
 
+import express from 'express'
+import {
+    getAppointments,
+    createAppointment,
+    deleteAppointment,
+    getAppointmentsForBarber
 
-// Histórico de agendamentos para o usuário autenticado
-import { getAppointmentsHistory } from '../controllers/appointmentController.js';
-router.get('/history', auth, getAppointmentsHistory);
+} from '../controllers/appointmentsController.js'
 
-router.get('/', auth, getAppointments);
-router.post('/', auth, createAppointment);
-router.put('/:id', auth, isAdmin, updateAppointment);
-router.delete('/:id', auth, isAdmin, deleteAppointment);
+const router = express.Router()
 
-export default router;
+router.get('/', getAppointments)
+router.post('/', createAppointment)
+router.delete('/:id', deleteAppointment)
+router.get('/barber', getAppointmentsForBarber)
+
+export default router

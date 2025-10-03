@@ -1,34 +1,29 @@
+import { BrowserRouter as Router } from "react-router-dom";
 import { useContext } from "react";
-import { AuthProvider, AuthContext } from "./context/AuthContext";
-import Login from "./components/Auth/Login";
-import Register from "./components/Auth/Register";
+import { AuthContext } from "./context/AuthContext";
 import Navbar from "./components/Shared/Navbar";
-import AdminDashboard from "./components/Dashboard/AdminDashboard";
-import BarberDashboard from "./components/Dashboard/BarberDashboard";
-import ClientDashboard from "./components/Dashboard/ClientDashboard";
+import AppRoutes from "./routes/AppRoutes";
+import Loader from "./components/Shared/Loader";
 
-function AppRoutes() {
-  const { user } = useContext(AuthContext);
+function Layout() {
+  const { loading } = useContext(AuthContext);
 
-  if (!user) {
-    return (
-      <div className="auth-container">
-        <Login />
-        <Register />
-      </div>
-    );
+  if (loading) {
+    return <Loader />;
   }
 
-  if (user.role === "admin") return <AdminDashboard />;
-  if (user.role === "barber") return <BarberDashboard />;
-  return <ClientDashboard />;
+  return (
+    <>
+      <Navbar />
+      <AppRoutes />
+    </>
+  );
 }
 
 export default function App() {
   return (
-    <AuthProvider>
-      <Navbar />
-      <AppRoutes />
-    </AuthProvider>
+    <Router>
+      <Layout />
+    </Router>
   );
 }

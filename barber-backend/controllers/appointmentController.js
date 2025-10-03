@@ -1,77 +1,92 @@
-
-import { supabase } from '../../supabaseClient.js';
-
-// Histórico de agendamentos para o usuário autenticado
-export async function getAppointmentsHistory(req, res) {
-  try {
-    const { role, id } = req.user;
-    let builder = supabase.from('appointments').select('*').order('date', { ascending: false });
-    if (role === 'client') builder = builder.eq('client', id);
-    if (role === 'barber') builder = builder.eq('barber', id);
-    const { data, error } = await builder;
-    if (error) throw error;
-    res.json(data || []);
-  } catch (err) {
-    res.status(500).json({ message: 'Erro ao buscar histórico', error: err.message });
-  }
-}
+// barber-backend/controllers/appointmentsController.js
+import supabase from '../supabaseClient.js'
 
 export async function getAppointments(req, res) {
-  try {
-    const { role, id } = req.user;
-    let builder = supabase.from('appointments').select('*');
-    if (role === 'client') builder = builder.eq('client', id);
-    if (role === 'barber') builder = builder.eq('barber', id);
-    const { data, error } = await builder;
-    if (error) throw error;
-    res.json(data || []);
-  } catch (err) {
-    res.status(500).json({ message: 'Erro ao listar agendamentos', error: err.message });
-  }
+  const userId = req.headers['x-user-id'] // depois vamos melhorar isso com auth
+  const { data, error } = await supabase
+    .from('appointments')
+    .select('*')
+    .eq('user_id', userId)
+
+  if (error) return res.status(400).json({ error: error.message })
+  res.json(data)
 }
 
 export async function createAppointment(req, res) {
-  try {
-    const payload = req.body;
-    const { data, error } = await supabase
-      .from('appointments')
-      .insert([payload])
-      .select()
-      .single();
-    if (error) throw error;
-    res.status(201).json(data);
-  } catch (err) {
-    res.status(500).json({ message: 'Erro ao criar agendamento', error: err.message });
-  }
-}
+  const { user_id, barber_id, service_id, scheduled_at } = req.body
+  const { data, error } = await supabase
+    .from('appointments')
+    .insert([{ user_id, barber_id, service_id, scheduled_at }])
 
-export async function updateAppointment(req, res) {
-  try {
-    const { id } = req.params;
-    const { data, error } = await supabase
-      .from('appointments')
-      .update(req.body)
-      .eq('id', id)
-      .select()
-      .single();
-    if (error) throw error;
-    if (!data) return res.status(404).json({ message: 'Agendamento não encontrado' });
-    res.json(data);
-  } catch (err) {
-    res.status(500).json({ message: 'Erro ao atualizar agendamento', error: err.message });
-  }
+  if (error) return res.status(400).json({ error: error.message })
+  res.status(201).json(data)
 }
 
 export async function deleteAppointment(req, res) {
-  try {
-    const { id } = req.params;
-    const { error } = await supabase
-      .from('appointments')
-      .delete()
-      .eq('id', id);
-    if (error) throw error;
-    res.json({ message: 'Agendamento removido' });
-  } catch (err) {
-    res.status(500).json({ message: 'Erro ao deletar agendamento', error: err.message });
+  const { id } = req.params
+  const userId = req.headers['x-user-id'] // quem está logado
+
+  // garante que só o dono do agendamento pode cancelar
+  const { data: appointment, error: fetchError } = await supabase
+    .from('appointments')
+    .select('id, user_id')
+    .eq('id', id)
+    .single()
+
+  if (fetchError) return res.status(400).json({ error: fetchError.message })
+  if (!appointment) return res.status(404).json({ error: 'Agendamento não encontrado' })
+  if (appointment.user_id !== userId) {
+    return res.status(403).json({ error: 'Você não tem permissão para cancelar este agendamento' })
   }
+
+  const { error } = await supabase.from('appointments').delete().eq('id', id)
+
+  if (error) return res.status(400).json({ error: error.message })
+  res.json({ message: 'Agendamento cancelado com sucesso' })
+}
+
+export async function getAppointmentsForBarber(req, res) {
+  const barberId = req.headers['x-barber-id'] // id do barbeiro logado
+
+  const { data, error } = await supabase
+    .from('appointments')
+    .select(`
+      id,
+      scheduled_at,
+      users (id, email),
+      services (id, name, price)
+    `)
+    .eq('barber_id', barberId)
+    .order('scheduled_at', { ascending: true })
+
+  if (error) return res.status(400).json({ error: error.message })
+  res.json(data)
+}
+
+export async function updateAppointmentStatus(req, res) {
+  const { id } = req.params
+  const { status } = req.body
+  const barberId = req.headers['x-barber-id'] // barbeiro logado
+
+  // Verifica se o agendamento pertence a este barbeiro
+  const { data: appointment, error: fetchError } = await supabase
+    .from('appointments')
+    .select('id, barber_id')
+    .eq('id', id)
+    .single()
+
+  if (fetchError) return res.status(400).json({ error: fetchError.message })
+  if (!appointment) return res.status(404).json({ error: 'Agendamento não encontrado' })
+  if (appointment.barber_id !== barberId) {
+    return res.status(403).json({ error: 'Você não tem permissão para alterar este agendamento' })
+  }
+
+  // Atualiza o status
+  const { data, error } = await supabase
+    .from('appointments')
+    .update({ status })
+    .eq('id', id)
+
+  if (error) return res.status(400).json({ error: error.message })
+  res.json({ message: 'Status atualizado com sucesso', data })
 }

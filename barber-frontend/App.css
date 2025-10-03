@@ -1,0 +1,40 @@
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+
+  /* Fundo com a imagem */
+  background-image: url("/images/background.png");
+  background-size: cover;       /* cobre toda a tela */
+  background-position: center;  /* centraliza a imagem */
+  background-repeat: no-repeat; /* evita repetição */
+  min-height: 100vh;            /* ocupa altura total */
+}
+
+/* Para garantir legibilidade do conteúdo */
+.app-container {
+  background-color: rgba(255, 255, 255, 0.85); /* fundo branco translúcido */
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem;
+}
+
+@media (max-width: 768px) {
+  body {
+    background-size: contain; /* mostra a imagem inteira em telas menores */
+  }
+
+  .app-container {
+    margin: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  h2, h3 {
+    font-size: 1.2rem;
+  }
+
+  button {
+    width: 100%; /* botões ocupam largura total no celular */
+    margin-top: 0.5rem;
+  }
+}

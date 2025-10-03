@@ -1,0 +1,15 @@
+.links {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+}
+
+.link {
+  color: #f5c16c;
+  cursor: pointer;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.link:hover {
+  color: #ffd27f;
+}

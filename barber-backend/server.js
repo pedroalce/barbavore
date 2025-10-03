@@ -1,20 +1,15 @@
-import 'dotenv/config';
-import express from 'express';
-import cors from 'cors';
-import router from './routes.js';
+// barber-backend/server.js
+import express from 'express'
+import appointmentsRoutes from './routes/appointments.js'
+import servicesRoutes from './routes/services.js'
 
-const app = express();
 
-// CORS configuration
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
-}));
+const app = express()
+app.use(express.json())
 
-app.use(express.json());
-app.use(router);
+// registra a rota
+app.use('/appointments', appointmentsRoutes)
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando na porta ${PORT}`);
-});
+app.use('/services', servicesRoutes)
+
+app.listen(3000, () => console.log('Server running on port 3000'))
