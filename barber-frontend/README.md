@@ -19,3 +19,4 @@ Frontend React para o sistema de agendamento de barbearia.
    ```
    npm run dev
    ```
+      

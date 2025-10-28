@@ -1,43 +1,53 @@
 import { useState } from "react";
-import { supabase } from "../../lib/supabaseClient";
+import { Link } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
+import "./ForgotPassword.css";
 
 export default function ForgotPassword() {
+  const { resetPassword } = useContext(AuthContext);
   const [email, setEmail] = useState("");
-  const [message, setMessage] = useState(null);
-  const [error, setError] = useState(null);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage(null);
-    setError(null);
+    setMessage("");
+    setError("");
 
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: "http://localhost:5173/reset-password", 
-      // essa rota será aberta quando o usuário clicar no link do e-mail
-    });
-
-    if (error) {
-      setError(error.message);
-    } else {
-      setMessage("Enviamos um link de recuperação para seu e-mail!");
+    try {
+      await resetPassword(email);
+      setMessage("Email de redefinição enviado com sucesso!");
+    } catch (err) {
+      setError("Erro ao enviar email. Verifique o endereço e tente novamente.");
     }
   };
 
   return (
     <div className="forgot-container">
-      <h2>Recuperar Senha</h2>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="email"
-          placeholder="Digite seu e-mail"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-        <button type="submit">Enviar link</button>
+      <form className="forgot-form" onSubmit={handleSubmit}>
+        <h2 className="forgot-title">Recuperar Senha</h2>
+
+        {message && <p className="success-message">{message}</p>}
+        {error && <p className="error-message">{error}</p>}
+
+        <label>
+          Email
+          <input
+            type="email"
+            placeholder="seu@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </label>
+
+        <button type="submit" className="btn-forgot">Enviar</button>
+
+        <div className="forgot-links">
+          <Link to="/login">Voltar ao login</Link>
+        </div>
       </form>
-      {message && <p style={{ color: "green" }}>{message}</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
 }

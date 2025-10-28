@@ -1,60 +1,86 @@
 import { useState } from "react";
-import { supabase } from "../../lib/supabaseClient";
+import { useNavigate, Link } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
+import "./Register.css";
 
 export default function Register() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [role, setRole] = useState("client"); // padrão cliente
-  const [message, setMessage] = useState(null);
+  const { register } = useContext(AuthContext);
+  const navigate = useNavigate();
 
-  const handleRegister = async (e) => {
+  const [formData, setFormData] = useState({ email: "", password: "", confirmPassword: "" });
+  const [error, setError] = useState("");
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage(null);
+    setError("");
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { role }, // aqui salvamos o papel do usuário
-      },
-    });
+    if (formData.password !== formData.confirmPassword) {
+      setError("As senhas não coincidem.");
+      return;
+    }
 
-    if (error) {
-      setMessage("Erro: " + error.message);
-    } else {
-      setMessage("Cadastro realizado! Verifique seu e-mail para confirmar.");
+    try {
+      await register(formData.email, formData.password);
+      navigate("/dashboard/client");
+    } catch (err) {
+      setError("Erro ao registrar. Tente novamente.");
     }
   };
 
   return (
     <div className="register-container">
-      <h2>Criar Conta</h2>
-      <form onSubmit={handleRegister}>
-        <input
-          type="email"
-          placeholder="Seu e-mail"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
+      <form className="register-form" onSubmit={handleSubmit}>
+        <h2 className="register-title">Criar Conta</h2>
 
-        <input
-          type="password"
-          placeholder="Sua senha"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
+        {error && <p className="error-message">{error}</p>}
 
-        <select value={role} onChange={(e) => setRole(e.target.value)}>
-          <option value="client">Cliente</option>
-          <option value="barber">Barbeiro</option>
-          <option value="admin">Administrador</option>
-        </select>
+        <label>
+          Email
+          <input
+            type="email"
+            name="email"
+            placeholder="seu@email.com"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
+        </label>
 
-        <button type="submit">Cadastrar</button>
+        <label>
+          Senha
+          <input
+            type="password"
+            name="password"
+            placeholder="••••••••"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
+        </label>
+
+        <label>
+          Confirmar Senha
+          <input
+            type="password"
+            name="confirmPassword"
+            placeholder="••••••••"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            required
+          />
+        </label>
+
+        <button type="submit" className="btn-register">Registrar</button>
+
+        <div className="register-links">
+          <Link to="/login">Já tenho conta</Link>
+        </div>
       </form>
-      {message && <p>{message}</p>}
     </div>
   );
 }

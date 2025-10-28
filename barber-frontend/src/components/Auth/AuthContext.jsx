@@ -1,46 +1,70 @@
 import { createContext, useState, useEffect } from "react";
-import { supabase } from "../lib/supabaseClient";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../services/supabase";
 
 export const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); // novo estado
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
+  // Verifica sessão ao carregar
   useEffect(() => {
     const getSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data?.session?.user) {
-        const role = data.session.user.user_metadata?.role || "client";
-        setUser({ id: data.session.user.id, role });
-      }
-      setLoading(false); // terminou de verificar
+      const { data, error } = await supabase.auth.getUser();
+      if (data?.user) setUser(data.user);
+      setLoading(false);
     };
-
     getSession();
 
+    // Listener para mudanças de sessão
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        const role = session.user.user_metadata?.role || "client";
-        setUser({ id: session.user.id, role });
-      } else {
-        setUser(null);
-      }
-      setLoading(false);
+      setUser(session?.user || null);
     });
 
     return () => {
-      listener?.subscription?.unsubscribe();
+      listener.subscription.unsubscribe();
     };
   }, []);
 
+  // Login
+  const login = async (email, password) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+  };
+
+  // Registro
+  const register = async (email, password) => {
+    const { error } = await supabase.auth.signUp({ email, password });
+    if (error) throw error;
+  };
+
+  // Logout
   const logout = async () => {
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
     setUser(null);
   };
 
+  // Enviar email de redefinição
+  const resetPassword = async (email) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: "http://localhost:5173/reset-password", // ajuste para sua URL
+    });
+    if (error) throw error;
+  };
+
+  // Atualizar senha após redefinição
+  const updatePassword = async (newPassword) => {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw error;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, setUser, logout, loading }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, register, logout, resetPassword, updatePassword }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,7 +1,7 @@
 import { useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
 import AppointmentForm from "../AppointmentForm";
-import MyAppointments from "../myAppointments";
+import MyAppointments from "../../MyAppointments";
 
 
 export default function ClientDashboard() {
@@ -17,7 +17,7 @@ export default function ClientDashboard() {
       </section>
 
       <section>
-        <myAppointments />
+        <MyAppointments />
       </section>
     </div>
   );

@@ -1,82 +1,62 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
+import { useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
+import {
+  getBarberAppointments,
+  updateAppointmentStatus,
+} from "../../services/appointments";
+import "./BarberDashboard.css";
 
 export default function BarberDashboard() {
   const { user } = useContext(AuthContext);
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState(null);
+  const [feedback, setFeedback] = useState("");
 
   useEffect(() => {
-    const fetchAppointments = async () => {
+    async function fetchAppointments() {
       try {
-        const res = await fetch("http://localhost:3000/appointments/barber", {
-          headers: {
-            "x-barber-id": user.id,
-          },
-        });
-        const data = await res.json();
-        if (res.ok) {
-          setAppointments(data);
-        } else {
-          setMessage("Erro: " + data.error);
-        }
+        const data = await getBarberAppointments(user.email);
+        setAppointments(data);
       } catch (err) {
-        setMessage("Erro de conexão com o servidor.");
+        setFeedback("Erro ao carregar agendamentos.");
       } finally {
         setLoading(false);
       }
-    };
+    }
     fetchAppointments();
-  }, [user]);
+  }, [user.email]);
 
-  const updateStatus = async (id, status) => {
+  const handleConclude = async (id) => {
     try {
-      const res = await fetch(`http://localhost:3000/appointments/${id}/status`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "x-barber-id": user.id,
-        },
-        body: JSON.stringify({ status }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setAppointments((prev) =>
-          prev.map((a) => (a.id === id ? { ...a, status } : a))
-        );
-        setMessage("Status atualizado com sucesso!");
-      } else {
-        setMessage("Erro: " + data.error);
-      }
+      await updateAppointmentStatus(id, "concluído");
+      setAppointments((prev) => prev.filter((appt) => appt.id !== id));
+      setFeedback("Agendamento marcado como concluído.");
     } catch (err) {
-      setMessage("Erro de conexão com o servidor.");
+      setFeedback("Erro ao concluir agendamento.");
     }
   };
 
   if (loading) return <p>Carregando agendamentos...</p>;
 
   return (
-    <div className="barber-dashboard">
-      <h2>Painel do Barbeiro</h2>
-      {message && <p>{message}</p>}
+    <div className="barber-dashboard-container">
+      <h3>Agenda do Barbeiro</h3>
+      {feedback && <p className="feedback-message">{feedback}</p>}
+
       {appointments.length === 0 ? (
-        <p>Você não tem agendamentos marcados.</p>
+        <p>Sem agendamentos ativos no momento.</p>
       ) : (
-        <ul>
-          {appointments.map((a) => (
-            <li key={a.id}>
-              Cliente: {a.users?.email} | Serviço: {a.services?.name} | Data:{" "}
-              {new Date(a.scheduled_at).toLocaleString()} | Status:{" "}
-              {a.status || "pendente"}
-              <div>
-                <button onClick={() => updateStatus(a.id, "concluído")}>
-                  Concluir
-                </button>
-                <button onClick={() => updateStatus(a.id, "cancelado")}>
-                  Cancelar
-                </button>
-              </div>
+        <ul className="appointments-list">
+          {appointments.map((appt) => (
+            <li key={appt.id} className="appointment-card">
+              <p><strong>Cliente:</strong> {appt.client_email}</p>
+              <p><strong>Serviço:</strong> {appt.service}</p>
+              <p><strong>Data:</strong> {appt.date}</p>
+              <p><strong>Hora:</strong> {appt.time}</p>
+              <button onClick={() => handleConclude(appt.id)} className="btn-conclude">
+                Concluir
+              </button>
             </li>
           ))}
         </ul>

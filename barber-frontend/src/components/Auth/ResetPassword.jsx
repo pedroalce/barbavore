@@ -1,40 +1,74 @@
 import { useState } from "react";
-import { supabase } from "../../lib/supabaseClient";
+import { useNavigate } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "../../context/AuthContext";
+import "./ResetPassword.css";
 
 export default function ResetPassword() {
-  const [password, setPassword] = useState("");
-  const [message, setMessage] = useState(null);
-  const [error, setError] = useState(null);
+  const { updatePassword } = useContext(AuthContext);
+  const navigate = useNavigate();
 
-  const handleReset = async (e) => {
+  const [formData, setFormData] = useState({ password: "", confirmPassword: "" });
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setMessage(null);
-    setError(null);
+    setError("");
+    setMessage("");
 
-    const { error } = await supabase.auth.updateUser({ password });
+    if (formData.password !== formData.confirmPassword) {
+      setError("As senhas não coincidem.");
+      return;
+    }
 
-    if (error) {
-      setError(error.message);
-    } else {
-      setMessage("Senha redefinida com sucesso! Agora você pode fazer login.");
+    try {
+      await updatePassword(formData.password);
+      setMessage("Senha redefinida com sucesso!");
+      setTimeout(() => navigate("/login"), 2000);
+    } catch (err) {
+      setError("Erro ao redefinir senha. Tente novamente.");
     }
   };
 
   return (
     <div className="reset-container">
-      <h2>Definir nova senha</h2>
-      <form onSubmit={handleReset}>
-        <input
-          type="password"
-          placeholder="Nova senha"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Salvar nova senha</button>
+      <form className="reset-form" onSubmit={handleSubmit}>
+        <h2 className="reset-title">Redefinir Senha</h2>
+
+        {message && <p className="success-message">{message}</p>}
+        {error && <p className="error-message">{error}</p>}
+
+        <label>
+          Nova Senha
+          <input
+            type="password"
+            name="password"
+            placeholder="••••••••"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
+        </label>
+
+        <label>
+          Confirmar Nova Senha
+          <input
+            type="password"
+            name="confirmPassword"
+            placeholder="••••••••"
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            required
+          />
+        </label>
+
+        <button type="submit" className="btn-reset">Salvar</button>
       </form>
-      {message && <p style={{ color: "green" }}>{message}</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
     </div>
   );
 }

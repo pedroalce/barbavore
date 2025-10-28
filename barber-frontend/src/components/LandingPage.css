@@ -1,15 +1,59 @@
-.links {
-  margin-top: 1rem;
-  font-size: 0.9rem;
+.landing-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 85vh;
+  background: linear-gradient(to right, #4f46e5, #6366f1);
+  color: #fff;
+  text-align: center;
+  padding: 2rem;
 }
 
-.link {
-  color: #f5c16c;
-  cursor: pointer;
-  font-weight: bold;
-  text-decoration: underline;
+.landing-content {
+  max-width: 600px;
 }
 
-.link:hover {
-  color: #ffd27f;
+.landing-content h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.landing-content p {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+}
+
+.landing-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn-primary,
+.btn-secondary {
+  padding: 0.8rem 1.6rem;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.btn-primary {
+  background: #fff;
+  color: #4f46e5;
+}
+
+.btn-primary:hover {
+  background: #e0e7ff;
+}
+
+.btn-secondary {
+  background: transparent;
+  border: 2px solid #fff;
+  color: #fff;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
 }

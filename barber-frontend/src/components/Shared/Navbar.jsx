@@ -1,52 +1,34 @@
-import { useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useContext } from "react";
 import { AuthContext } from "../../context/AuthContext";
+import "./Navbar.css";
 
 export default function Navbar() {
   const { user, logout } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    logout(); // função que você já deve ter no AuthContext
-    navigate("/"); // volta para a landing
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
   };
 
   return (
     <nav className="navbar">
-      <h1 className="logo">Barbavore</h1>
-      <ul>
+      <Link to="/" className="logo">Barbavore</Link>
+
+      <div className="nav-links">
         {!user ? (
           <>
-            <li>
-              <Link to="/login">Entrar</Link>
-            </li>
-            <li>
-              <Link to="/register">Cadastrar</Link>
-            </li>
+            <Link to="/login">Entrar</Link>
+            <Link to="/register">Registrar</Link>
           </>
         ) : (
           <>
-            {user.role === "admin" && (
-              <li>
-                <Link to="/admin">Dashboard Admin</Link>
-              </li>
-            )}
-            {user.role === "barber" && (
-              <li>
-                <Link to="/barber">Meus Agendamentos</Link>
-              </li>
-            )}
-            {user.role === "client" && (
-              <li>
-                <Link to="/client">Meu Painel</Link>
-              </li>
-            )}
-            <li>
-              <button onClick={handleLogout}>Sair</button>
-            </li>
+            <Link to="/dashboard/client">Dashboard</Link>
+            <button onClick={handleLogout} className="btn-logout">Sair</button>
           </>
         )}
-      </ul>
+      </div>
     </nav>
   );
 }
